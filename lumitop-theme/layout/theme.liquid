@@ -33,5 +33,18 @@
         })();
     </script>
     {{ 'app.js' | asset_url | script_tag }}
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Supabase Initialization
+        (function() {
+            const url = 'YOUR_SUPABASE_URL';
+            const key = 'YOUR_SUPABASE_ANON_KEY';
+            if (url !== 'YOUR_SUPABASE_URL') {
+                window.supabaseClient = supabase.createClient(url, key);
+            }
+        })();
+    </script>
+    {{ 'app.js' | asset_url | script_tag }}
 </body>
 </html>
