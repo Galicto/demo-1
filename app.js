@@ -115,19 +115,35 @@
 
     // ── Initialize ──
     function init() {
-        updateCartUI();
-        bindEvents();
-        initStickyAtc();
-        initScrollReveal();
-        initChatbot();
+        console.log('🚀 Lumitop Init: Starting...');
+        try {
+            updateCartUI();
+            console.log('✓ Cart UI Updated');
+            bindEvents();
+            console.log('✓ Events Bound');
+            initStickyAtc();
+            initScrollReveal();
+            initChatbot();
+            console.log('🚀 Lumitop Init: Complete!');
+        } catch (err) {
+            console.error('❌ Lumitop Init Error:', err);
+        }
     }
 
     // ── Event Bindings ──
     function bindEvents() {
+        const safeAdd = (el, type, fn) => {
+            if (el) {
+                el.addEventListener(type, fn);
+            } else {
+                console.warn(`⚠ Missing element for event: ${type}`);
+            }
+        };
+
         // Mobile Nav
-        els.hamburger.addEventListener('click', openMobileNav);
-        els.mobileNavClose.addEventListener('click', closeMobileNav);
-        els.overlay.addEventListener('click', closeAll);
+        safeAdd(els.hamburger, 'click', openMobileNav);
+        safeAdd(els.mobileNavClose, 'click', closeMobileNav);
+        safeAdd(els.overlay, 'click', closeAll);
 
         // Mobile Nav Links
         $$('.mobile-nav-link').forEach(link => {
@@ -137,16 +153,16 @@
         });
 
         // Cart Drawer
-        els.cartToggle.addEventListener('click', openCartDrawer);
-        els.cartDrawerClose.addEventListener('click', closeCartDrawer);
-        els.cartContinue.addEventListener('click', (e) => {
+        safeAdd(els.cartToggle, 'click', openCartDrawer);
+        safeAdd(els.cartDrawerClose, 'click', closeCartDrawer);
+        safeAdd(els.cartContinue, 'click', (e) => {
             e.preventDefault();
             closeCartDrawer();
         });
 
         // Gallery
-        els.galleryPrev.addEventListener('click', () => changeSlide(currentSlide - 1, true));
-        els.galleryNext.addEventListener('click', () => changeSlide(currentSlide + 1, true));
+        safeAdd(els.galleryPrev, 'click', () => changeSlide(currentSlide - 1, true));
+        safeAdd(els.galleryNext, 'click', () => changeSlide(currentSlide + 1, true));
         els.galleryDots.forEach(dot => {
             dot.addEventListener('click', () => changeSlide(parseInt(dot.dataset.index), true));
         });
@@ -155,13 +171,15 @@
         });
 
         // Touch swipe for gallery
-        els.galleryMain.addEventListener('touchstart', (e) => {
-            touchStartX = e.changedTouches[0].screenX;
-        }, { passive: true });
-        els.galleryMain.addEventListener('touchend', (e) => {
-            touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
-        }, { passive: true });
+        if (els.galleryMain) {
+            els.galleryMain.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+            els.galleryMain.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, { passive: true });
+        }
 
         // Color Swatches
         els.colorSwatches.forEach(swatch => {
@@ -173,21 +191,21 @@
         });
 
         // Quantity
-        els.qtyMinus.addEventListener('click', () => {
+        safeAdd(els.qtyMinus, 'click', () => {
             const val = parseInt(els.qtyInput.value);
             if (val > 1) els.qtyInput.value = val - 1;
         });
-        els.qtyPlus.addEventListener('click', () => {
+        safeAdd(els.qtyPlus, 'click', () => {
             const val = parseInt(els.qtyInput.value);
             if (val < 10) els.qtyInput.value = val + 1;
         });
 
         // Add to Cart
-        els.addToCartBtn.addEventListener('click', addToCart);
-        els.stickyAddToCart.addEventListener('click', addToCart);
+        safeAdd(els.addToCartBtn, 'click', addToCart);
+        safeAdd(els.stickyAddToCart, 'click', addToCart);
 
         // Buy Now
-        els.buyNowBtn.addEventListener('click', () => {
+        safeAdd(els.buyNowBtn, 'click', () => {
             addToCart();
             setTimeout(() => {
                 closeCartDrawer();
@@ -196,17 +214,19 @@
         });
 
         // Checkout
-        els.checkoutBtn.addEventListener('click', () => {
+        safeAdd(els.checkoutBtn, 'click', () => {
+            console.log('Checkout clicked');
             if (CONFIG.shopify.useRedirect) {
-                // Direct integration redirect to Shopify Cart
                 window.location.href = `https://${CONFIG.shopify.domain}/`;
             } else {
                 closeCartDrawer();
                 openCheckoutModal();
             }
         });
-        els.checkoutClose.addEventListener('click', closeCheckoutModal);
-        els.checkoutForm.addEventListener('submit', handleCheckout);
+        safeAdd(els.checkoutClose, 'click', closeCheckoutModal);
+        if (els.checkoutForm) {
+            els.checkoutForm.addEventListener('submit', handleCheckout);
+        }
 
         // Payment method switching
         els.paymentMethods.forEach(method => {
@@ -218,40 +238,42 @@
         });
 
         // Success
-        els.successClose.addEventListener('click', () => {
+        safeAdd(els.successClose, 'click', () => {
             els.successModal.classList.remove('open');
             document.body.classList.remove('no-scroll');
         });
         
-        if (els.successTrackBtn) {
-            els.successTrackBtn.addEventListener('click', () => {
-                els.successModal.classList.remove('open');
-                openOrdersModal();
-                if (lastCheckoutPhone) {
-                    els.ordersLookupPhone.value = lastCheckoutPhone;
-                    handleOrderLookup();
-                }
+        safeAdd(els.successTrackBtn, 'click', () => {
+            els.successModal.classList.remove('open');
+            openOrdersModal();
+            if (lastCheckoutPhone) {
+                els.ordersLookupPhone.value = lastCheckoutPhone;
+                handleOrderLookup();
+            }
+        });
+
+        // Newsletter
+        if (els.newsletterForm) {
+            els.newsletterForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                showToast('✓ Subscribed successfully!');
+                els.newsletterForm.reset();
             });
         }
 
-        // Newsletter
-        els.newsletterForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            showToast('✓ Subscribed successfully!');
-            els.newsletterForm.reset();
-        });
-
         // My Orders
-        els.myOrdersLink.addEventListener('click', (e) => {
+        safeAdd(els.myOrdersLink, 'click', (e) => {
             e.preventDefault();
             closeMobileNav();
             openOrdersModal();
         });
-        els.ordersClose.addEventListener('click', closeOrdersModal);
-        els.ordersLookupBtn.addEventListener('click', handleOrderLookup);
-        els.ordersLookupPhone.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleOrderLookup();
-        });
+        safeAdd(els.ordersClose, 'click', closeOrdersModal);
+        safeAdd(els.ordersLookupBtn, 'click', handleOrderLookup);
+        if (els.ordersLookupPhone) {
+            els.ordersLookupPhone.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleOrderLookup();
+            });
+        }
 
         // Pincode & Geo
         const pincodeInp = $('#checkout-pincode');
@@ -261,14 +283,18 @@
         if (geoBtn) geoBtn.addEventListener('click', handleGeolocation);
 
         // Initializations for Pro features
-        initSocialProof();
-        initScarcityTimer();
-        initStickyBuy();
-        initExitIntent();
+        try {
+            initSocialProof();
+            initScarcityTimer();
+            initStickyBuy();
+            initExitIntent();
+        } catch (e) {
+            console.warn('Pro feature init failed:', e);
+        }
         
         // Auto-play gallery
         setInterval(() => {
-            if (!document.hidden) {
+            if (!document.hidden && typeof changeSlide === 'function') {
                 changeSlide((currentSlide + 1) % totalSlides, false);
             }
         }, 5000);
