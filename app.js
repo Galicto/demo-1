@@ -221,8 +221,12 @@
             els.newsletterForm.reset();
         });
 
-        // Pincode Auto-fill
-        $('#checkout-pincode').addEventListener('input', handlePincodeLookup);
+        // Pincode & Geo
+        const pincodeInp = $('#checkout-pincode');
+        if (pincodeInp) pincodeInp.addEventListener('input', handlePincodeLookup);
+        
+        const geoBtn = $('#btn-geo');
+        if (geoBtn) geoBtn.addEventListener('click', handleGeolocation);
 
         // Auto-play gallery
         setInterval(() => {
@@ -488,31 +492,74 @@
     async function handlePincodeLookup(e) {
         const pincode = e.target.value.trim();
         if (pincode.length === 6) {
-            const cityInput = $('#checkout-city');
-            const stateInput = $('#checkout-state');
+            lookupPincode(pincode);
+        }
+    }
 
-            // Visual feedback
-            const originalCity = cityInput.placeholder;
-            cityInput.placeholder = 'Detecting...';
-            stateInput.placeholder = 'Detecting...';
+    async function lookupPincode(pincode) {
+        const cityInput = $('#checkout-city');
+        const stateInput = $('#checkout-state');
 
+        // Visual feedback
+        cityInput.value = ''; 
+        stateInput.value = '';
+        cityInput.placeholder = 'Detecting...';
+        stateInput.placeholder = 'Detecting...';
+
+        try {
+            const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+            const data = await response.json();
+
+            if (data && data[0].Status === 'Success') {
+                const postOffice = data[0].PostOffice[0];
+                cityInput.value = postOffice.District;
+                stateInput.value = postOffice.State;
+                showToast(`✓ Detected: ${postOffice.District}, ${postOffice.State}`);
+            } else {
+                showToast('⚠ Pincode not found');
+            }
+        } catch (err) {
+            console.error('Pincode API error:', err);
+            showToast('⚠ Location detection failed');
+        } finally {
+            cityInput.placeholder = 'City *';
+            stateInput.placeholder = 'State *';
+        }
+    }
+
+    function handleGeolocation() {
+        if (!navigator.geolocation) {
+            showToast('⚠ Geolocation not supported');
+            return;
+        }
+
+        const geoBtn = $('#btn-geo');
+        geoBtn.textContent = '⏳';
+
+        navigator.geolocation.getCurrentPosition(async (position) => {
             try {
-                const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+                const { latitude, longitude } = position.coords;
+                // Using Reverse Geocoding via BigDataCloud (Free, no key needed for small use)
+                const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
                 const data = await response.json();
-
-                if (data && data[0].Status === 'Success') {
-                    const postOffice = data[0].PostOffice[0];
-                    cityInput.value = postOffice.District;
-                    stateInput.value = postOffice.State;
-                    showToast(`✓ Detected: ${postOffice.District}, ${postOffice.State}`);
+                
+                if (data.postcode) {
+                    $('#checkout-pincode').value = data.postcode;
+                    lookupPincode(data.postcode);
+                } else {
+                    $('#checkout-city').value = data.city || data.locality || '';
+                    $('#checkout-state').value = data.principalSubdivision || '';
+                    showToast('✓ Location detected');
                 }
             } catch (err) {
-                console.error('Pincode API error:', err);
+                showToast('⚠ Error detecting location');
             } finally {
-                cityInput.placeholder = originalCity;
-                stateInput.placeholder = 'State *';
+                geoBtn.textContent = '📍';
             }
-        }
+        }, () => {
+            showToast('⚠ Permission denied');
+            geoBtn.textContent = '📍';
+        });
     }
 
     function initiateRazorpayPayment(formData) {

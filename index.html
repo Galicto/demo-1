@@ -436,9 +436,12 @@
                     <div class="form-row">
                         <textarea id="checkout-address" placeholder="Full Address *" required rows="3"></textarea>
                     </div>
-                    <div class="form-row form-row-half">
+                    <div class="form-row form-row-half pincode-row">
+                        <div class="pincode-wrapper">
+                            <input type="text" id="checkout-pincode" placeholder="Pincode *" required pattern="[0-9]{6}">
+                            <button type="button" class="btn-geo" id="btn-geo" title="Detect Location">📍</button>
+                        </div>
                         <input type="text" id="checkout-city" placeholder="City *" required>
-                        <input type="text" id="checkout-pincode" placeholder="Pincode *" required pattern="[0-9]{6}">
                     </div>
                     <div class="form-row">
                         <input type="text" id="checkout-state" placeholder="State *" required>

@@ -2277,3 +2277,48 @@ input, textarea {
         width: calc(100vw - 40px);
     }
 }
+
+/* --- Smart Pincode & Geo-tagging --- */
+.pincode-row {
+    margin-bottom: 12px;
+}
+
+.pincode-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.pincode-wrapper input {
+    width: 100% !important;
+    padding-right: 45px !important;
+}
+
+.btn-geo {
+    position: absolute;
+    right: 5px;
+    background: rgba(0,0,0,0.05);
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.btn-geo:hover {
+    background: rgba(0,0,0,0.1);
+    transform: scale(1.1);
+}
+
+.form-row-half {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
