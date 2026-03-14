@@ -1588,6 +1588,135 @@ input, textarea {
     background: var(--color-accent-hover);
 }
 
+/* ── My Orders Modal ── */
+.orders-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+}
+
+.orders-modal.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.orders-modal::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+}
+
+.orders-modal-content {
+    position: relative;
+    width: 90%;
+    max-width: 480px;
+    background: var(--color-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.orders-modal.open .orders-modal-content {
+    transform: scale(1);
+}
+
+.orders-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--color-border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.orders-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.orders-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--color-text-light);
+}
+
+.orders-body {
+    padding: 24px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.orders-lookup-form {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    margin-bottom: 24px;
+}
+
+.orders-lookup-form input {
+    flex: 1;
+    padding: 12px;
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    outline: none;
+}
+
+.orders-results {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.order-result-card {
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    background: var(--color-bg-alt);
+}
+
+.order-result-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+}
+
+.order-id-track {
+    font-weight: 700;
+    color: var(--color-accent);
+}
+
+.order-status {
+    background: var(--color-accent);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.order-items-list {
+    font-size: 0.85rem;
+    color: var(--color-text-light);
+}
+
+.order-total-track {
+    margin-top: 12px;
+    font-weight: 700;
+    text-align: right;
+}
+
 /* ── Checkout Modal ── */
 .checkout-modal {
     position: fixed;

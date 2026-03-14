@@ -29,7 +29,7 @@
         </div>
         <a href="#" class="mobile-nav-link active">Home</a>
         <a href="#product-section" class="mobile-nav-link">Shop Here</a>
-        <a href="#" class="mobile-nav-link">My Orders</a>
+        <a href="#" class="mobile-nav-link" id="my-orders-link">My Orders</a>
         <a href="#contact" class="mobile-nav-link">Contact</a>
         <div class="mobile-nav-footer">
             <a href="#" class="mobile-nav-link-small">Log in</a>
@@ -542,6 +542,26 @@
 
                     <button type="submit" class="btn btn-place-order" id="place-order-btn">Place Order</button>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== MY ORDERS MODAL ========== -->
+    <div class="orders-modal" id="orders-modal">
+        <div class="orders-modal-content">
+            <div class="orders-header">
+                <h3>Track My Orders</h3>
+                <button class="orders-close" id="orders-close" aria-label="Close Orders">✕</button>
+            </div>
+            <div class="orders-body">
+                <p>Enter your phone number to see your recent orders.</p>
+                <div class="orders-lookup-form">
+                    <input type="tel" id="orders-lookup-phone" placeholder="Phone Number (10 digits)" pattern="[0-9]{10}">
+                    <button class="btn btn-primary" id="orders-lookup-btn">Search Orders</button>
+                </div>
+                <div id="orders-results" class="orders-results">
+                    <!-- Results injected here -->
+                </div>
             </div>
         </div>
     </div>
