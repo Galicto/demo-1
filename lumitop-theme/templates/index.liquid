@@ -27,10 +27,10 @@
             <span class="mobile-nav-title">Menu</span>
             <button class="mobile-nav-close" id="mobile-nav-close" aria-label="Close Menu">✕</button>
         </div>
-        <a href="#" class="mobile-nav-link active">Home</a>
-        <a href="#product-section" class="mobile-nav-link">Shop Here</a>
-        <a href="#" class="mobile-nav-link" id="my-orders-link">My Orders</a>
-        <a href="#contact" class="mobile-nav-link">Contact</a>
+        <a href="/" class="mobile-nav-link">Home</a>
+        <a href="/#product-section" class="mobile-nav-link">Shop Here</a>
+        <a href="/pages/orders" class="mobile-nav-link">My Orders</a>
+        <a href="/#contact" class="mobile-nav-link">Contact</a>
         <div class="mobile-nav-footer">
             <a href="#" class="mobile-nav-link-small">Log in</a>
         </div>
@@ -378,7 +378,7 @@
                     <span class="review-date">Sep 28, 2025</span>
                 </div>
                 <h4 class="review-title">Good product, nice vibes</h4>
-                <p class="review-body">Looks exactly like the Instagram videos. You just plug it into a USB and it completely changes the room. At ₹549 this was a steal. Shipping took 4 days which was okay. I use it for my background while streaming and everyone asks about it!</p>
+                <p class="review-body">Looks exactly like the Instagram videos. You just plug it into a USB and it completely changes the room. At ₹149 this was a steal. Shipping took 4 days which was okay. I use it for my background while streaming and everyone asks about it!</p>
                 <div class="review-author">
                     <div class="author-avatar">R</div>
                     <div class="author-info">
@@ -394,7 +394,7 @@
                     <span class="review-date">Sep 15, 2025</span>
                 </div>
                 <h4 class="review-title">Pretty good for the price</h4>
-                <p class="review-body">The remote is a bit small but it has so many color options. The sunset one is by far the best mode. Definitely worth the ₹549. Would buy again as a gift.</p>
+                <p class="review-body">The remote is a bit small but it has so many color options. The sunset one is by far the best mode. Definitely worth the ₹149. Would buy again as a gift.</p>
                 <div class="review-author">
                     <div class="author-avatar">P</div>
                     <div class="author-info">
@@ -475,7 +475,7 @@
             </div>
             <div class="checkout-body">
                 <div class="checkout-summary" id="checkout-summary"></div>
-                <form class="checkout-form" id="checkout-form">
+                <form class="checkout-form" id="checkout-form" novalidate>
                     <h4>Shipping Details</h4>
                     <div class="form-row">
                         <input type="text" id="checkout-name" placeholder="Full Name *" required>
@@ -599,26 +599,36 @@
                     </div>
 
                     <button type="submit" class="btn btn-place-order" id="place-order-btn">Place Order</button>
+            <button type="submit" class="btn btn-place-order" id="place-order-btn">Place Order</button>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- ========== MY ORDERS MODAL ========== -->
-    <div class="orders-modal" id="orders-modal">
-        <div class="orders-modal-content">
-            <div class="orders-header">
-                <h3>Track My Orders</h3>
-                <button class="orders-close" id="orders-close" aria-label="Close Orders">✕</button>
+    <!-- Separate Page Used Instead of Modal -->
+
+    <!-- ========== OTP VERIFICATION MODAL ========== -->
+    <div class="otp-modal" id="otp-modal">
+        <div class="otp-modal-content">
+            <div class="otp-header">
+                <h3>Verify Phone Number</h3>
+                <button class="otp-close" id="otp-close-btn" aria-label="Close Verification">✕</button>
             </div>
-            <div class="orders-body">
-                <p>Enter your phone number to see your recent orders.</p>
-                <div class="orders-lookup-form">
-                    <input type="tel" id="orders-lookup-phone" placeholder="Phone Number (10 digits)" pattern="[0-9]{10}">
-                    <button class="btn btn-primary" id="orders-lookup-btn">Search Orders</button>
+            <div class="otp-body" style="text-align: center; padding: 20px;">
+                <p style="margin-bottom: 20px; font-size: 14px; color: var(--color-text-light);">
+                    We've sent a 4-digit verification code to <strong id="otp-phone-display">91XXXXXXXXXX</strong> via SMS.
+                </p>
+                <div class="otp-input-container" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 25px;">
+                    <input type="text" maxlength="1" class="otp-digit" data-index="0" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-digit" data-index="1" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-digit" data-index="2" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-digit" data-index="3" inputmode="numeric">
                 </div>
-                <div id="orders-results" class="orders-results">
-                    <!-- Results injected here -->
+                <div id="otp-error" style="color: #ff4d4d; font-size: 13px; margin-bottom: 15px; display: none;">Invalid code. Please try again.</div>
+                <button class="btn btn-primary" id="otp-verify-btn" style="width: 100%; font-weight: 700;">VERIFY & PLACE ORDER</button>
+                <div style="margin-top: 20px; font-size: 13px;">
+                    Didn't receive it? <a href="#" id="otp-resend" style="color: var(--color-accent); font-weight: 600;">Resend OTP</a>
+                    <span id="otp-timer" style="color: #999; margin-left: 5px;">(00:30)</span>
                 </div>
             </div>
         </div>
@@ -633,7 +643,7 @@
             <p class="order-id" id="order-id-display"></p>
             <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
                 <button class="btn btn-primary" id="success-whatsapp-btn" style="background: #25D366; border: none; font-weight: 700;">Confirm on WhatsApp ✅</button>
-                <button class="btn btn-outline" id="success-track-btn">Track My Order 📦</button>
+                <button class="btn btn-outline" id="success-track-btn" onclick="window.location.href='/pages/orders?phone=' + lastCheckoutPhone">Track My Order 📦</button>
                 <button class="btn btn-outline" id="success-close-btn" style="border: 1px solid var(--color-border); background: transparent; color: var(--color-text);">Continue Shopping</button>
             </div>
         </div>
@@ -645,7 +655,7 @@
     <!-- ========== STICKY ADD TO CART (MOBILE) ========== -->
     <div class="sticky-atc" id="sticky-atc">
         <div class="sticky-atc-info">
-            <span class="sticky-atc-price">₹549</span>
+            <span class="sticky-atc-price">₹149</span>
             <span class="sticky-atc-compare">₹1,499</span>
         </div>
         <button class="btn btn-add-to-cart sticky-atc-btn" id="sticky-add-to-cart">Add to Cart</button>

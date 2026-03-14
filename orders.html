@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Track My Orders – Lumitop Store</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="orders-page">
+
+    <!-- ========== HEADER ========== -->
+    <header class="header" id="header">
+        <button class="hamburger" id="hamburger-btn" aria-label="Open Menu">
+            <span></span><span></span><span></span>
+        </button>
+        <a href="index.html" class="logo">LUMITOP</a>
+        <a href="index.html#product-section" class="cart-toggle-nav-link" style="text-decoration:none; font-weight:600; font-size:14px; color:var(--color-text);">Shop Now</a>
+    </header>
+
+    <!-- ========== MOBILE NAV DRAWER ========== -->
+    <nav class="mobile-nav" id="mobile-nav">
+        <div class="mobile-nav-header">
+            <span class="mobile-nav-title">Menu</span>
+            <button class="mobile-nav-close" id="mobile-nav-close" aria-label="Close Menu">✕</button>
+        </div>
+        <a href="index.html" class="mobile-nav-link">Home</a>
+        <a href="index.html#product-section" class="mobile-nav-link">Shop Here</a>
+        <a href="orders.html" class="mobile-nav-link active">My Orders</a>
+        <div class="mobile-nav-footer">
+            <a href="#" class="mobile-nav-link-small">Log in</a>
+        </div>
+    </nav>
+
+    <!-- ========== TRACKING HERO ========== -->
+    <section class="orders-hero">
+        <div class="container" style="padding-top: 100px; padding-bottom: 50px; text-align: center;">
+            <h1 style="font-size: 2.5rem; margin-bottom: 10px;">Track Your Order</h1>
+            <p style="color: var(--color-text-light); max-width: 600px; margin: 0 auto 30px;">
+                Enter the phone number used during checkout to see your recent order history and status.
+            </p>
+            
+            <div class="orders-lookup-card" style="background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); max-width: 500px; margin: 0 auto;">
+                <div class="orders-lookup-form" style="display: flex; flex-direction: column; gap: 15px;">
+                    <div style="text-align: left;">
+                        <label for="orders-lookup-phone" style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px;">Phone Number</label>
+                        <input type="tel" id="orders-lookup-phone" placeholder="10-digit Phone Number" pattern="[0-9]{10}" style="width: 100%; padding: 15px; border: 1px solid var(--color-border); border-radius: 10px; font-size: 16px;">
+                    </div>
+                    <button class="btn btn-primary" id="orders-lookup-btn" style="width: 100%; padding: 15px 0; font-weight: 700;">SEARCH ORDERS</button>
+                </div>
+            </div>
+            
+            <div id="orders-results" class="orders-results" style="margin-top: 40px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto;">
+                <!-- Results injected here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="footer" style="margin-top: 100px; border-top: 1px solid var(--color-border); padding: 50px 0;">
+        <div class="container" style="text-align: center;">
+            <p style="color: var(--color-text-light); font-size: 14px;">© 2026 Lumitop Store. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <div class="overlay" id="overlay"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Supabase Initialization Fallback
+        (function() {
+            const url = 'YOUR_SUPABASE_URL';
+            const key = 'YOUR_SUPABASE_ANON_KEY';
+            if (url !== 'YOUR_SUPABASE_URL') {
+                window.supabaseClient = supabase.createClient(url, key);
+            }
+        })();
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>

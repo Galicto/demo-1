@@ -11,7 +11,7 @@
     const CONFIG = {
         product: {
             name: "{{ main_product.title | default: 'LUMITOP™ Sunset Projection LED Lamp' }}",
-            price: {{ main_product.price | divided_by: 100 | default: 549 }},
+            price: {{ main_product.price | divided_by: 100 | default: 149 }},
             comparePrice: {{ main_product.compare_at_price | divided_by: 100 | default: 1499 }},
             currency: "{{ shop.currency }}",
             image: "{{ main_product.featured_image | img_url: 'master' | default: 'product-1.jpg' | asset_url }}",
@@ -109,25 +109,56 @@
         ordersClose: $('#orders-close'),
         ordersLookupBtn: $('#orders-lookup-btn'),
         ordersLookupPhone: $('#orders-lookup-phone'),
-        ordersResults: $('#orders-results'),
         successTrackBtn: $('#success-track-btn'),
-        successWhatsAppBtn: $('#success-whatsapp-btn')
+        successWhatsAppBtn: $('#success-whatsapp-btn'),
+        // OTP Elements
+        otpModal: $('#otp-modal'),
+        otpClose: $('#otp-close-btn'),
+        otpVerifyBtn: $('#otp-verify-btn'),
+        otpPhoneDisplay: $('#otp-phone-display'),
+        otpDigits: $$('.otp-digit'),
+        otpResend: $('#otp-resend'),
+        otpTimer: $('#otp-timer'),
+        otpError: $('#otp-error'),
+        // Detect page type
+        isOrdersPage: document.body.classList.contains('orders-page')
     };
+
+    let generatedOTP = null;
+    let otpTimerInterval = null;
+    let currentPendingOrder = null;
 
     // ── Initialize ──
     async function init() {
         console.log('🚀 Lumitop Init: Starting...');
         try {
-            await updateCartState();
-            console.log('✓ Cart State Updated');
+            if (!els.isOrdersPage) {
+                await updateCartState();
+                initStickyAtc();
+                initScrollReveal();
+                initChatbot();
+                try {
+                    initSocialProof();
+                    initScarcityTimer();
+                    initStickyBuy();
+                    initExitIntent();
+                } catch (e) { console.warn('Pro features init skipped'); }
+            } else {
+                checkUrlParams();
+            }
             bindEvents();
-            console.log('✓ Events Bound');
-            initStickyAtc();
-            initScrollReveal();
-            initChatbot();
-            console.log('🚀 Lumitop Init: Complete!');
+            console.log('✓ Initialization Complete!');
         } catch (err) {
             console.error('❌ Lumitop Init Error:', err);
+        }
+    }
+
+    function checkUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        const phone = params.get('phone');
+        if (phone && els.ordersLookupPhone) {
+            els.ordersLookupPhone.value = phone;
+            handleOrderLookup();
         }
     }
 
@@ -246,12 +277,8 @@
         });
         
         safeAdd(els.successTrackBtn, 'click', () => {
-            els.successModal.classList.remove('open');
-            openOrdersModal();
-            if (lastCheckoutPhone) {
-                els.ordersLookupPhone.value = lastCheckoutPhone;
-                handleOrderLookup();
-            }
+            const phone = lastCheckoutPhone || '';
+            window.location.href = `/pages/orders?phone=${phone}`;
         });
 
         // Newsletter
@@ -265,11 +292,14 @@
 
         // My Orders
         safeAdd(els.myOrdersLink, 'click', (e) => {
-            e.preventDefault();
-            closeMobileNav();
-            openOrdersModal();
+            if (!els.myOrdersLink.getAttribute('href').includes('orders')) {
+                window.location.href = '/pages/orders';
+            }
         });
-        safeAdd(els.ordersClose, 'click', closeOrdersModal);
+        safeAdd(els.ordersClose, 'click', () => {
+            if (els.ordersModal) closeOrdersModal();
+            else window.history.back();
+        });
         safeAdd(els.ordersLookupBtn, 'click', handleOrderLookup);
         if (els.ordersLookupPhone) {
             els.ordersLookupPhone.addEventListener('keypress', (e) => {
@@ -284,15 +314,7 @@
         const geoBtn = $('#btn-geo');
         if (geoBtn) geoBtn.addEventListener('click', handleGeolocation);
 
-        // Initializations for Pro features
-        try {
-            initSocialProof();
-            initScarcityTimer();
-            initStickyBuy(); // New Pro feature
-            initExitIntent(); // New Pro feature
-        } catch (e) {
-            console.warn('Pro feature init failed:', e);
-        }
+        // Initializations for Pro features moves into init() for page-awareness
         
         // Auto-play gallery
         setInterval(() => {
@@ -362,7 +384,14 @@
             if (uniqueOrders.length > 0) {
                 renderOrderResults(uniqueOrders);
             } else {
-                els.ordersResults.innerHTML = '<div class="no-results">No orders found for this number.</div>';
+                els.ordersResults.innerHTML = `
+                    <div class="no-results" style="text-align: center; padding: 40px 20px; background: #fff; border-radius: 15px; border: 1px dashed var(--color-border); margin-top: 20px;">
+                        <div style="font-size: 40px; margin-bottom: 15px;">🔍</div>
+                        <h3 style="margin-bottom: 10px; font-weight: 700;">No Orders Found</h3>
+                        <p style="color: var(--color-text-light); font-size: 14px;">We couldn't find any orders for <strong>${phone}</strong>. Please double-check the number or contact support if you believe this is an error.</p>
+                        <button class="btn btn-outline" style="margin-top: 20px; font-size: 14px;" onclick="window.location.reload()">Try Again</button>
+                    </div>
+                `;
             }
         } catch (err) {
             console.error('Order lookup error:', err);
@@ -621,7 +650,7 @@
     }
 
     function handleCheckout(e) {
-        e.preventDefault();
+        if (e) e.preventDefault();
 
         // 1. Bot Protection (Honeypot)
         if ($('#checkout-honeypot') && $('#checkout-honeypot').value) {
@@ -635,32 +664,26 @@
             phone: $('#checkout-phone').value.trim(),
             address: $('#checkout-address').value.trim(),
             city: $('#checkout-city').value.trim(),
-            pincode: $('#checkout-pincode').value.trim(),
-            state: $('#checkout-state').value.trim()
+            state: $('#checkout-state').value.trim(),
+            pincode: $('#checkout-pincode').value.trim()
         };
 
         // 2. Robust Validation
         let hasError = false;
-        
-        // Reset previous errors
         $$('.form-row').forEach(row => row.classList.remove('has-error'));
 
         const showError = (id, condition) => {
-            if (condition) {
-                const input = $(`#${id}`);
-                if (input && input.parentElement) {
-                    input.parentElement.classList.add('has-error');
-                }
+            const el = $(`#${id}`);
+            if (condition && el && el.parentElement) {
+                el.parentElement.classList.add('has-error');
                 hasError = true;
             }
         };
 
         showError('checkout-name', formData.name.length < 3);
-        showError('checkout-email', !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email));
         showError('checkout-phone', !/^[6-9]{1}[0-9]{9}$/.test(formData.phone));
         showError('checkout-address', formData.address.length < 10);
         showError('checkout-pincode', formData.pincode.length !== 6);
-        showError('checkout-city', !formData.city);
         showError('checkout-state', !formData.state);
 
         if (hasError) {
@@ -668,56 +691,12 @@
             return;
         }
 
-        const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
-
-        // 3. AI Confirmation Flow (OpenClaw)
-        startAIConfirmation(formData, paymentMethod);
-    }
-
-    async function startAIConfirmation(formData, paymentMethod) {
+        currentPendingOrder = formData;
+        lastCheckoutPhone = formData.phone;
+        
+        // Step 1: Trigger OTP Shield
         closeCheckoutModal();
-        
-        // Open Chatbot
-        const chatbotFab = $('#chatbot-fab');
-        if (chatbotFab && !els.chatbotWindow.classList.contains('open')) {
-            chatbotFab.click();
-        }
-
-        const summary = `🛒 *Order Summary:*
-Name: ${formData.name}
-Phone: ${formData.phone}
-Address: ${formData.address}, ${formData.city} - ${formData.pincode}
-Payment: ${paymentMethod.toUpperCase()}
-Total: ${els.checkoutTotal.textContent}
-
-*Please reply with "YES" or "CONFIRM" to place your order!*`;
-
-        addChatMessage(summary, 'bot');
-        
-        const confirmationHandler = async () => {
-            const reply = els.chatbotInput.value.trim().toLowerCase();
-            if (reply.includes('yes') || reply.includes('confirm')) {
-                els.chatbotInput.value = '';
-                addChatMessage(reply, 'user');
-                addChatMessage("Perfect! Processing your order now... 🚀", 'bot');
-                
-                if (paymentMethod === 'razorpay') {
-                    initiateRazorpayPayment(formData);
-                } else {
-                    placeOrder(formData, 'COD', null);
-                }
-                
-                els.chatbotSend.removeEventListener('click', confirmationHandler);
-                els.chatbotInput.removeEventListener('keypress', enterHandler);
-            } else if (reply.length > 0) {
-                addChatMessage("I need a clear 'YES' or 'CONFIRM' to proceed! 😊", 'bot');
-            }
-        };
-
-        const enterHandler = (e) => { if (e.key === 'Enter') confirmationHandler(); };
-
-        els.chatbotSend.addEventListener('click', confirmationHandler);
-        els.chatbotInput.addEventListener('keypress', enterHandler);
+        startOtpProcess(formData.phone);
     }
 
     async function handlePincodeLookup(e) {
@@ -755,6 +734,8 @@ Total: ${els.checkoutTotal.textContent}
         } finally {
             cityInput.placeholder = 'City *';
             stateInput.placeholder = 'State *';
+            if (!cityInput.value) cityInput.value = '';
+            if (!stateInput.value) stateInput.value = '';
         }
     }
 
@@ -843,43 +824,133 @@ Total: ${els.checkoutTotal.textContent}
         }
     }
 
-    function placeOrder(formData, paymentMethod, paymentId) {
-        const orderId = 'LMT-' + Date.now().toString(36).toUpperCase();
-        lastCheckoutPhone = formData.phone; 
+    // ── OTP Logic ──
+    function startOtpProcess(phone) {
+        generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
+        console.log('DEBUG: Generated OTP is', generatedOTP); // For demo
+        
+        if (els.otpPhoneDisplay) els.otpPhoneDisplay.textContent = phone;
+        if (els.otpModal) els.otpModal.classList.add('open');
+        if (els.otpError) els.otpError.style.display = 'none';
+        
+        els.otpDigits.forEach(d => {
+            d.value = '';
+            d.style.borderColor = 'var(--color-border)';
+        });
+        if (els.otpDigits[0]) els.otpDigits[0].focus();
+        
+        startOtpTimer();
+        showToast('🔑 Verification code sent!');
+    }
 
+    function startOtpTimer() {
+        let timeLeft = 30;
+        if (els.otpResend) els.otpResend.classList.add('disabled');
+        clearInterval(otpTimerInterval);
+        
+        otpTimerInterval = setInterval(() => {
+            timeLeft--;
+            if (els.otpTimer) {
+                els.otpTimer.textContent = `(00:${timeLeft < 10 ? '0' : ''}${timeLeft})`;
+            }
+            if (timeLeft <= 0) {
+                clearInterval(otpTimerInterval);
+                if (els.otpResend) {
+                    els.otpResend.classList.remove('disabled');
+                    els.otpTimer.textContent = '';
+                }
+            }
+        }, 1000);
+    }
+
+    function handleOtpVerification() {
+        const enteredOTP = Array.from(els.otpDigits).map(d => d.value).join('');
+        if (enteredOTP === generatedOTP) {
+            closeOtpModal();
+            if (currentPendingOrder) {
+                finalizeOrder(currentPendingOrder);
+            }
+        } else {
+            if (els.otpError) els.otpError.style.display = 'block';
+            els.otpDigits.forEach(d => {
+                d.value = '';
+                d.style.borderColor = '#ff4d4d';
+            });
+            if (els.otpDigits[0]) els.otpDigits[0].focus();
+            setTimeout(() => {
+                els.otpDigits.forEach(d => d.style.borderColor = 'var(--color-border)');
+            }, 1000);
+        }
+    }
+
+    function closeOtpModal() {
+        if (els.otpModal) els.otpModal.classList.remove('open');
+        clearInterval(otpTimerInterval);
+        document.body.classList.remove('no-scroll');
+    }
+
+
+    function finalizeOrder(formData) {
+        const selectedPayment = document.querySelector('input[name="payment"]:checked');
+        const isCod = selectedPayment && selectedPayment.value === 'cod';
+        
+        if (isCod) {
+            placeOrder(formData, 'COD', 'COD_' + Date.now());
+        } else {
+            initiateRazorpayPayment(formData);
+        }
+    }
+
+    function placeOrder(formData, paymentMethod, paymentId) {
+        const orderId = 'LMT-' + Math.floor(100000 + Math.random() * 900000);
+        
         const orderData = {
-            orderId,
-            ...formData,
-            paymentMethod,
-            paymentId,
+            order_id: orderId,
+            customer_name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            address: formData.address,
+            city: formData.city,
+            state: formData.state,
+            pincode: formData.pincode,
             items: cartState ? cartState.items : [],
             total: cartState ? cartState.total_price / 100 : CONFIG.product.price,
+            payment_method: paymentMethod,
+            payment_id: paymentId,
+            status: 'received',
+            verified: true,
             timestamp: new Date().toISOString()
         };
 
-        // Save order to localStorage
         const orders = JSON.parse(localStorage.getItem('lumitop_orders') || '[]');
         orders.push(orderData);
         localStorage.setItem('lumitop_orders', JSON.stringify(orders));
 
-        // PRODUCTION: Sync with External Services
-        syncOrderWithBackend(orderData);
+        syncWithSupabase(orderData);
 
-        // Close checkout and show success
         closeCheckoutModal();
         if (els.checkoutForm) els.checkoutForm.reset();
 
-        if (els.orderIdDisplay) els.orderIdDisplay.textContent = `Order ID: ${orderId}`;
+        const idDisplay = $('#order-id-display');
+        if (idDisplay) idDisplay.textContent = `Order ID: #${orderId}`;
         
-        // Set WhatsApp Link
-        const waMsg = `Hi! I just placed an order for ${orderData.items[0].name}. Order ID: ${orderId}. Please confirm my order!`;
-        const waLink = `https://wa.me/91XXXXXXXXXX?text=${encodeURIComponent(waMsg)}`; // Placeholder number
-        if ($('#success-whatsapp-btn')) {
-            $('#success-whatsapp-btn').onclick = () => window.open(waLink, '_blank');
+        const waMsg = `Hi! I just placed an order. Order ID: ${orderId}. Please confirm!`;
+        const waLink = `https://wa.me/91XXXXXXXXXX?text=${encodeURIComponent(waMsg)}`;
+        if (els.successWhatsAppBtn) {
+            els.successWhatsAppBtn.onclick = () => window.open(waLink, '_blank');
         }
 
-        els.successModal.classList.add('open');
+        if (els.successModal) els.successModal.classList.add('open');
         document.body.classList.add('no-scroll');
+        
+        showToast('🚀 Order placed successfully!');
+    }
+
+    async function syncWithSupabase(orderData) {
+        if (!window.supabaseClient) return;
+        try {
+            await window.supabaseClient.from('orders').insert([orderData]);
+        } catch (err) { console.error('DB Sync Error'); }
     }
 
     // ── Pro Features ──
@@ -1125,6 +1196,24 @@ Total: ${els.checkoutTotal.textContent}
             addChatMessage(text, 'user');
             els.chatbotInput.value = '';
 
+            // Keyword Interceptor for Faster Bot Interactions
+            const lowerText = text.toLowerCase();
+            const orderKeywords = ['confirm', 'yes', 'place', 'ok', 'placed', 'yeah', 'yep', 'done'];
+            
+            if (orderKeywords.some(k => lowerText.includes(k))) {
+                setTimeout(() => {
+                    addChatMessage("Awesome! 🚀 Order confirmed. I'm getting everything ready for you right now!", 'bot');
+                    // Automatically trigger the success modal if it was waiting
+                    if (els.checkoutModal && els.checkoutModal.classList.contains('open')) {
+                        // Success modal trigger logic
+                        setTimeout(() => {
+                            if (typeof openSuccessModal === 'function') openSuccessModal();
+                        }, 1000); 
+                    }
+                }, 600);
+                return;
+            }
+
             if (CONFIG.gemini.apiKey === 'YOUR_GEMINI_API_KEY') {
                 setTimeout(() => {
                     addChatMessage("Hey there! 😊 Lumi here. My AI brain is currently sleeping because I need a Gemini API Key to talk to you. <br><br>Please grab a free key from <a href='https://aistudio.google.com/app/apikey' target='_blank' style='color:var(--color-accent);text-decoration:underline;'>Google AI Studio</a> and paste it into <strong>app.js (line 30)</strong> where it says `apiKey: 'YOUR_KEY_HERE'`.", 'bot');
@@ -1148,7 +1237,7 @@ Total: ${els.checkoutTotal.textContent}
                                 text: `You are Lumi, a highly empathetic and friendly human customer support representative for our premium store. We sell the 'LUMITOP Sunset Projection LED Lamp'.
 Rule 1: NEVER say you are an AI, bot, or virtual assistant. Act exactly like a real human texting a customer (casual, friendly, use emojis, empathetic).
 Rule 2: Keep replies short, conversational, and punchy. Don't write long essays.
-Rule 3: The lamp costs ₹549 (on sale from ₹1,499).
+Rule 3: The lamp costs ₹149 (on sale from ₹1,499).
 Rule 4: Shipping is Free and Cash on Delivery (COD) is available anywhere in India.
 Rule 5: The lamp has 4 variants: Sunset Orange, Rainbow RGB, Golden Warm, Purple Haze.
 Customer says: "${text}"` 

@@ -1,0 +1,32 @@
+{% layout 'theme' %}
+
+<div class="orders-page-wrapper">
+    <!-- ========== TRACKING HERO ========== -->
+    <section class="orders-hero">
+        <div class="container" style="padding-top: 100px; padding-bottom: 50px; text-align: center;">
+            <h1 style="font-size: 2.5rem; margin-bottom: 10px;">Track Your Order</h1>
+            <p style="color: var(--color-text-light); max-width: 600px; margin: 0 auto 30px;">
+                Enter the phone number used during checkout to see your recent order history and status.
+            </p>
+            
+            <div class="orders-lookup-card" style="background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); max-width: 500px; margin: 0 auto;">
+                <div class="orders-lookup-form" style="display: flex; flex-direction: column; gap: 15px;">
+                    <div style="text-align: left;">
+                        <label for="orders-lookup-phone" style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px;">Phone Number</label>
+                        <input type="tel" id="orders-lookup-phone" placeholder="10-digit Phone Number" pattern="[0-9]{10}" style="width: 100%; padding: 15px; border: 1px solid var(--color-border); border-radius: 10px; font-size: 16px;">
+                    </div>
+                    <button class="btn btn-primary" id="orders-lookup-btn" style="width: 100%; padding: 15px 0; font-weight: 700;">SEARCH ORDERS</button>
+                </div>
+            </div>
+            
+            <div id="orders-results" class="orders-results" style="margin-top: 40px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto;">
+                <!-- Results injected here -->
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    // Add orders-page class to body for JS detection
+    document.body.classList.add('orders-page');
+</script>
