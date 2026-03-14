@@ -1875,6 +1875,24 @@ input, textarea {
     min-height: 80px;
 }
 
+.error-msg {
+    color: var(--color-danger);
+    font-size: 11px;
+    margin-top: 4px;
+    display: none;
+    font-weight: 600;
+}
+
+.form-row.has-error .error-msg {
+    display: block;
+}
+
+.form-row.has-error input,
+.form-row.has-error textarea,
+.form-row.has-error select {
+    border-color: var(--color-danger) !important;
+}
+
 .form-row-half {
     display: flex;
     gap: 12px;

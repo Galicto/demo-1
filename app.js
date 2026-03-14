@@ -550,6 +550,12 @@
     function handleCheckout(e) {
         e.preventDefault();
 
+        // 1. Bot Protection (Honeypot)
+        if ($('#checkout-honeypot').value) {
+            console.warn('Bot detected via honeypot');
+            return;
+        }
+
         const formData = {
             name: $('#checkout-name').value.trim(),
             email: $('#checkout-email').value.trim(),
@@ -560,30 +566,87 @@
             state: $('#checkout-state').value.trim()
         };
 
-        // Validate
-        if (!formData.name || !formData.email || !formData.phone || !formData.address || !formData.city || !formData.pincode || !formData.state) {
-            showToast('⚠ Please fill in all required fields');
-            return;
-        }
+        // 2. Robust Validation
+        let hasError = false;
+        
+        // Reset previous errors
+        $$('.form-row').forEach(row => row.classList.remove('has-error'));
 
-        if (formData.phone.length !== 10) {
-            showToast('⚠ Please enter a valid 10-digit phone number');
-            return;
-        }
+        const showError = (id, condition) => {
+            if (condition) {
+                $(`#${id}`).parentElement.classList.add('has-error');
+                hasError = true;
+            }
+        };
 
-        if (formData.pincode.length !== 6) {
-            showToast('⚠ Please enter a valid 6-digit pincode');
+        showError('checkout-name', formData.name.length < 3);
+        showError('checkout-email', !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email));
+        showError('checkout-phone', !/^[6-9]{1}[0-9]{9}$/.test(formData.phone));
+        showError('checkout-address', formData.address.length < 10);
+        showError('checkout-pincode', formData.pincode.length !== 6);
+        showError('checkout-city', !formData.city);
+        showError('checkout-state', !formData.state);
+
+        if (hasError) {
+            showToast('⚠ Please fix the errors in the form');
             return;
         }
 
         const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
 
-        if (paymentMethod === 'razorpay') {
-            initiateRazorpayPayment(formData);
-        } else {
-            // COD order
-            placeOrder(formData, 'COD', null);
+        // 3. AI Confirmation Flow (OpenClaw)
+        startAIConfirmation(formData, paymentMethod);
+    }
+
+    async function startAIConfirmation(formData, paymentMethod) {
+        closeCheckoutModal();
+        
+        // Open Chatbot
+        const chatbotFab = $('#chatbot-fab');
+        if (chatbotFab && !els.chatbotWindow.classList.contains('open')) {
+            chatbotFab.click();
         }
+
+        const summary = `🛒 *Order Summary:*
+Name: ${formData.name}
+Phone: ${formData.phone}
+Address: ${formData.address}, ${formData.city} - ${formData.pincode}
+Payment: ${paymentMethod.toUpperCase()}
+Total: ${els.checkoutTotal.textContent}
+
+*Please reply with "YES" or "CONFIRM" to place your order!*`;
+
+        addChatMessage(summary, 'bot');
+        
+        // Temporarily override the chatbot's message handler
+        const originalSendMessage = els.chatbotSend.onclick;
+        
+        const confirmationHandler = async () => {
+            const reply = els.chatbotInput.value.trim().toLowerCase();
+            if (reply.includes('yes') || reply.includes('confirm')) {
+                els.chatbotInput.value = '';
+                addChatMessage(reply, 'user');
+                addChatMessage("Perfect! Processing your order now... 🚀", 'bot');
+                
+                // Proceed to payment or order placement
+                if (paymentMethod === 'razorpay') {
+                    initiateRazorpayPayment(formData);
+                } else {
+                    placeOrder(formData, 'COD', null);
+                }
+                
+                // Restore original handler
+                els.chatbotSend.removeEventListener('click', confirmationHandler);
+                els.chatbotInput.removeEventListener('keypress', enterHandler);
+            } else {
+                addChatMessage("I need a clear 'YES' or 'CONFIRM' to proceed, or let me know if you want to change something! 😊", 'bot');
+            }
+        };
+
+        const enterHandler = (e) => { if (e.key === 'Enter') confirmationHandler(); };
+
+        els.chatbotSend.addEventListener('click', confirmationHandler);
+        els.chatbotInput.addEventListener('keypress', enterHandler);
     }
 
     async function handlePincodeLookup(e) {

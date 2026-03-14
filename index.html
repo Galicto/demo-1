@@ -425,13 +425,19 @@
                 <form class="checkout-form" id="checkout-form">
                     <h4>Shipping Details</h4>
                     <div class="form-row">
-                        <input type="text" id="checkout-name" placeholder="Full Name *" required>
+                        <input type="text" id="checkout-name" placeholder="Full Name *" required minlength="3">
+                        <span class="error-msg" id="error-name">Please enter your full name (min 3 chars)</span>
+                    </div>
+                    <div class="form-row" style="display:none !important;" aria-hidden="true">
+                        <input type="text" id="checkout-honeypot" tabindex="-1" autocomplete="off">
                     </div>
                     <div class="form-row">
                         <input type="email" id="checkout-email" placeholder="Email *" required>
+                        <span class="error-msg" id="error-email">Please enter a valid email address</span>
                     </div>
                     <div class="form-row">
-                        <input type="tel" id="checkout-phone" placeholder="Phone Number *" required pattern="[0-9]{10}">
+                        <input type="tel" id="checkout-phone" placeholder="Phone Number *" required pattern="[6-9]{1}[0-9]{9}" maxlength="10">
+                        <span class="error-msg" id="error-phone">Enter a valid 10-digit Indian phone number</span>
                     </div>
                     <div class="form-row">
                         <textarea id="checkout-address" placeholder="Full Address *" required rows="3"></textarea>
