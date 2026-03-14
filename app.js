@@ -107,7 +107,8 @@
         ordersClose: $('#orders-close'),
         ordersLookupBtn: $('#orders-lookup-btn'),
         ordersLookupPhone: $('#orders-lookup-phone'),
-        ordersResults: $('#orders-results')
+        ordersResults: $('#orders-results'),
+        successTrackBtn: $('#success-track-btn')
     };
 
     // ── Initialize ──
@@ -219,6 +220,17 @@
             els.successModal.classList.remove('open');
             document.body.classList.remove('no-scroll');
         });
+        
+        if (els.successTrackBtn) {
+            els.successTrackBtn.addEventListener('click', () => {
+                els.successModal.classList.remove('open');
+                openOrdersModal();
+                if (lastCheckoutPhone) {
+                    els.ordersLookupPhone.value = lastCheckoutPhone;
+                    handleOrderLookup();
+                }
+            });
+        }
 
         // Newsletter
         els.newsletterForm.addEventListener('submit', (e) => {
@@ -699,6 +711,7 @@
 
     function placeOrder(formData, paymentMethod, paymentId) {
         const orderId = 'LMT-' + Date.now().toString(36).toUpperCase();
+        lastCheckoutPhone = formData.phone; // Store for tracking flow
 
         const orderData = {
             orderId,
