@@ -811,8 +811,8 @@ Total: ${els.checkoutTotal.textContent}
             ...formData,
             paymentMethod,
             paymentId,
-            items: [...cart],
-            total: getCartTotal(),
+            items: cartState ? cartState.items : [],
+            total: cartState ? cartState.total_price / 100 : CONFIG.product.price,
             timestamp: new Date().toISOString()
         };
 
@@ -821,22 +821,14 @@ Total: ${els.checkoutTotal.textContent}
         orders.push(orderData);
         localStorage.setItem('lumitop_orders', JSON.stringify(orders));
 
-        // Log order to console (for demo)
-        console.log('Order placed:', orderData);
-
         // PRODUCTION: Sync with External Services
         syncOrderWithBackend(orderData);
 
-        // Clear cart
-        cart = [];
-        saveCart();
-        updateCartUI();
-
         // Close checkout and show success
         closeCheckoutModal();
-        els.checkoutForm.reset();
+        if (els.checkoutForm) els.checkoutForm.reset();
 
-        els.orderIdDisplay.textContent = `Order ID: ${orderId}`;
+        if (els.orderIdDisplay) els.orderIdDisplay.textContent = `Order ID: ${orderId}`;
         els.successModal.classList.add('open');
         document.body.classList.add('no-scroll');
     }
