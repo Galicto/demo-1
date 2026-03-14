@@ -222,6 +222,10 @@
             els.newsletterForm.reset();
         });
 
+        // Pincode Auto-fill
+        const pincodeInp = $('#checkout-pincode');
+        if (pincodeInp) pincodeInp.addEventListener('input', handlePincodeLookup);
+
         // Auto-play gallery
         setInterval(() => {
             if (!document.hidden) {
@@ -511,6 +515,36 @@
         } else {
             // COD order
             placeOrder(formData, 'COD', null);
+        }
+    }
+
+    async function handlePincodeLookup(e) {
+        const pincode = e.target.value.trim();
+        if (pincode.length === 6) {
+            const cityInput = $('#checkout-city');
+            const stateInput = $('#checkout-state');
+
+            // Visual feedback
+            const originalCity = cityInput.placeholder;
+            cityInput.placeholder = 'Detecting...';
+            stateInput.placeholder = 'Detecting...';
+
+            try {
+                const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+                const data = await response.json();
+
+                if (data && data[0].Status === 'Success') {
+                    const postOffice = data[0].PostOffice[0];
+                    cityInput.value = postOffice.District;
+                    stateInput.value = postOffice.State;
+                    showToast(`✓ Detected: ${postOffice.District}, ${postOffice.State}`);
+                }
+            } catch (err) {
+                console.error('Pincode API error:', err);
+            } finally {
+                cityInput.placeholder = originalCity;
+                stateInput.placeholder = 'State *';
+            }
         }
     }
 
