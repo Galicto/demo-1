@@ -41,6 +41,7 @@
 
     // ── State ──
     let cart = JSON.parse(localStorage.getItem('lumitop_cart') || '[]');
+    let lastCheckoutPhone = ''; // To auto-fill tracking
     let currentSlide = 0;
     const totalSlides = 5;
     let touchStartX = 0;
