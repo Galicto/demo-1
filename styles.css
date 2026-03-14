@@ -1930,7 +1930,7 @@ input, textarea {
 /* ── Sticky Add to Cart ── */
 .sticky-atc {
     position: fixed;
-    bottom: -80px;
+    bottom: 0;
     left: 0;
     right: 0;
     background: var(--color-bg);
@@ -1941,12 +1941,14 @@ input, textarea {
     justify-content: space-between;
     gap: 12px;
     z-index: 900;
-    transition: bottom 0.3s ease;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+    will-change: transform;
+    transform: translateY(100%);
 }
 
 .sticky-atc.visible {
-    bottom: 0;
+    transform: translateY(0);
 }
 
 .sticky-atc-info {

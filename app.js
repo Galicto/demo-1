@@ -128,13 +128,13 @@
         });
 
         // Gallery
-        els.galleryPrev.addEventListener('click', () => changeSlide(currentSlide - 1));
-        els.galleryNext.addEventListener('click', () => changeSlide(currentSlide + 1));
+        els.galleryPrev.addEventListener('click', () => changeSlide(currentSlide - 1, true));
+        els.galleryNext.addEventListener('click', () => changeSlide(currentSlide + 1, true));
         els.galleryDots.forEach(dot => {
-            dot.addEventListener('click', () => changeSlide(parseInt(dot.dataset.index)));
+            dot.addEventListener('click', () => changeSlide(parseInt(dot.dataset.index), true));
         });
         els.galleryThumbs.forEach(thumb => {
-            thumb.addEventListener('click', () => changeSlide(parseInt(thumb.dataset.index)));
+            thumb.addEventListener('click', () => changeSlide(parseInt(thumb.dataset.index), true));
         });
 
         // Touch swipe for gallery
@@ -216,7 +216,7 @@
         // Auto-play gallery
         setInterval(() => {
             if (!document.hidden) {
-                changeSlide((currentSlide + 1) % totalSlides);
+                changeSlide((currentSlide + 1) % totalSlides, false);
             }
         }, 5000);
     }
@@ -255,7 +255,7 @@
     }
 
     // ── Gallery ──
-    function changeSlide(index) {
+    function changeSlide(index, isUserInteraction = false) {
         if (index < 0) index = totalSlides - 1;
         if (index >= totalSlides) index = 0;
 
@@ -267,12 +267,14 @@
         els.galleryDots[index].classList.add('active');
         els.galleryThumbs[index].classList.add('active');
 
-        // Scroll thumb into view
-        els.galleryThumbs[index].scrollIntoView({
-            behavior: 'smooth',
-            inline: 'center',
-            block: 'nearest'
-        });
+        // Only scroll thumb into view if triggered by user (prevents auto-play jumps)
+        if (isUserInteraction) {
+            els.galleryThumbs[index].scrollIntoView({
+                behavior: 'smooth',
+                inline: 'center',
+                block: 'nearest'
+            });
+        }
 
         currentSlide = index;
     }
@@ -281,9 +283,9 @@
         const diff = touchStartX - touchEndX;
         if (Math.abs(diff) > 50) {
             if (diff > 0) {
-                changeSlide(currentSlide + 1);
+                changeSlide(currentSlide + 1, true);
             } else {
-                changeSlide(currentSlide - 1);
+                changeSlide(currentSlide - 1, true);
             }
         }
     }
@@ -563,15 +565,23 @@
         const productActions = $('.product-actions');
         if (!productActions) return;
 
+        let lastState = false;
         const observer = new IntersectionObserver(
             ([entry]) => {
-                if (entry.isIntersecting) {
-                    els.stickyAtc.classList.remove('visible');
-                } else {
-                    els.stickyAtc.classList.add('visible');
+                const isVisible = !entry.isIntersecting;
+                if (isVisible !== lastState) {
+                    lastState = isVisible;
+                    if (isVisible) {
+                        els.stickyAtc.classList.add('visible');
+                    } else {
+                        els.stickyAtc.classList.remove('visible');
+                    }
                 }
             },
-            { threshold: 0, rootMargin: '-100px 0px 0px 0px' }
+            { 
+                threshold: [0, 1], 
+                rootMargin: '0px 0px -100px 0px' 
+            }
         );
 
         observer.observe(productActions);
