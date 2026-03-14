@@ -775,7 +775,7 @@ Total: ${els.checkoutTotal.textContent}
 
     function placeOrder(formData, paymentMethod, paymentId) {
         const orderId = 'LMT-' + Date.now().toString(36).toUpperCase();
-        lastCheckoutPhone = formData.phone; // Store for tracking flow
+        lastCheckoutPhone = formData.phone; 
 
         const orderData = {
             orderId,
@@ -783,7 +783,7 @@ Total: ${els.checkoutTotal.textContent}
             paymentMethod,
             paymentId,
             items: [...cart],
-            total: getCartTotal(),
+            total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
             timestamp: new Date().toISOString()
         };
 
@@ -791,9 +791,6 @@ Total: ${els.checkoutTotal.textContent}
         const orders = JSON.parse(localStorage.getItem('lumitop_orders') || '[]');
         orders.push(orderData);
         localStorage.setItem('lumitop_orders', JSON.stringify(orders));
-
-        // Log order to console (for demo)
-        console.log('Order placed:', orderData);
 
         // PRODUCTION: Sync with External Services
         syncOrderWithBackend(orderData);
@@ -805,9 +802,9 @@ Total: ${els.checkoutTotal.textContent}
 
         // Close checkout and show success
         closeCheckoutModal();
-        els.checkoutForm.reset();
+        if (els.checkoutForm) els.checkoutForm.reset();
 
-        els.orderIdDisplay.textContent = `Order ID: ${orderId}`;
+        if (els.orderIdDisplay) els.orderIdDisplay.textContent = `Order ID: ${orderId}`;
         els.successModal.classList.add('open');
         document.body.classList.add('no-scroll');
     }
