@@ -682,5 +682,23 @@
         </button>
     </div>
 
+    <!-- ========== STICKY MOBILE BUY BAR ========== -->
+    <div class="sticky-buy-wrapper" id="sticky-mobile-buy">
+        <button class="sticky-quick-buy" id="sticky-buy-trigger">BUY NOW - 60% OFF ⚡</button>
+    </div>
+
+    <!-- ========== EXIT INTENT POPUP ========== -->
+    <div class="modal exit-intent-modal" id="exit-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="exit-close">✕</button>
+            <div style="text-align: center; padding: 20px;">
+                <span style="font-size: 3rem;">🎁</span>
+                <h2 style="margin: 15px 0;">Wait! Don't Miss Out!</h2>
+                <p>Complete your order in the next 10 minutes and get an <b>EXTRA 10% OFF</b> with code: <b>LUMI10</b></p>
+                <button class="btn btn-primary" id="exit-claim-btn" style="width: 100%; margin-top: 20px;">Claim My Discount & Shop Now</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     {{ 'app.js' | asset_url | script_tag }}

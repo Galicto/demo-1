@@ -263,6 +263,8 @@
         // Initializations for Pro features
         initSocialProof();
         initScarcityTimer();
+        initStickyBuy();
+        initExitIntent();
         
         // Auto-play gallery
         setInterval(() => {
@@ -867,20 +869,13 @@ Total: ${els.checkoutTotal.textContent}
         setTimeout(showProof, 8000);
     }
 
-    function initScarcityTimer() {
-        const scarcityText = $('.scarcity-badge');
-        const scarcityBar = $('.sales-progress-bar');
-        if (!scarcityText || !scarcityBar) return;
-
-        let count = 7;
-        setInterval(() => {
-            if (Math.random() > 0.8 && count > 2) {
-                count--;
-                scarcityText.textContent = `🔥 Limited Stock: Only ${count} packs remaining today!`;
-                scarcityBar.style.width = `${89 + (7 - count)}%`;
-            }
-        }, 30000);
-    }
+        // Initializations for Pro features
+        initSocialProof();
+        initScarcityTimer();
+        initStickyBuy();
+        initExitIntent();
+        
+        // Auto-play gallery
 
     async function syncOrderWithBackend(orderData) {
         // 1. Log to Supabase
