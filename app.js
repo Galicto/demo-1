@@ -101,7 +101,13 @@
         chatbotInput: $('#chatbot-input'),
         chatbotSend: $('#chatbot-send'),
         fabIconChat: $('.fab-icon-chat'),
-        fabIconClose: $('.fab-icon-close')
+        fabIconClose: $('.fab-icon-close'),
+        myOrdersLink: $('#my-orders-link'),
+        ordersModal: $('#orders-modal'),
+        ordersClose: $('#orders-close'),
+        ordersLookupBtn: $('#orders-lookup-btn'),
+        ordersLookupPhone: $('#orders-lookup-phone'),
+        ordersResults: $('#orders-results')
     };
 
     // ── Initialize ──
