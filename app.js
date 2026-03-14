@@ -17,17 +17,25 @@
             variants: ['Sunset Orange', 'Rainbow RGB', 'Golden Warm', 'Purple Haze']
         },
         razorpay: {
-            key: 'rzp_test_XXXXXXXXXXXXXXX', // Replace with your Razorpay Key ID
+            key: 'rzp_live_SR7VbTMGVdZW4f', // Updated with provided live key
             company: 'Lumitop Store',
             logo: '',
             color: '#FF4500'
         },
+        supabase: {
+            url: 'YOUR_SUPABASE_URL', // User needs to provide this
+            key: 'YOUR_SUPABASE_ANON_KEY',
+            table: 'orders'
+        },
+        googleSheets: {
+            webhook: 'YOUR_GOOGLE_SHEETS_APPS_SCRIPT_URL' // User needs to provide this
+        },
         shopify: {
             domain: 'mavis-1773032239.myshopify.com', 
-            useRedirect: false // Set to true to redirect checkout directly to Shopify
+            useRedirect: false 
         },
         gemini: {
-            apiKey: 'AIzaSyBD645eE2e7tEAjMsSPF2h9cp85kHqUitA' // User needs to provide this
+            apiKey: 'AIzaSyBD645eE2e7tEAjMsSPF2h9cp85kHqUitA' 
         }
     };
 
@@ -546,6 +554,9 @@
         // Log order to console (for demo)
         console.log('Order placed:', orderData);
 
+        // PRODUCTION: Sync with External Services
+        syncOrderWithBackend(orderData);
+
         // Clear cart
         cart = [];
         saveCart();
@@ -558,6 +569,37 @@
         els.orderIdDisplay.textContent = `Order ID: ${orderId}`;
         els.successModal.classList.add('open');
         document.body.classList.add('no-scroll');
+    }
+
+    async function syncOrderWithBackend(orderData) {
+        // 1. Log to Supabase
+        if (CONFIG.supabase.url !== 'YOUR_SUPABASE_URL') {
+            try {
+                const { data, error } = await window.supabaseClient
+                    .from(CONFIG.supabase.table)
+                    .insert([orderData]);
+                if (error) throw error;
+                console.log('Synced with Supabase successfully');
+            } catch (err) {
+                console.error('Supabase Sync Error:', err);
+            }
+        }
+
+        // 2. Sync with Google Sheets (via Webhook)
+        if (CONFIG.googleSheets.webhook !== 'YOUR_GOOGLE_SHEETS_APPS_SCRIPT_URL') {
+            try {
+                await fetch(CONFIG.googleSheets.webhook, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+                console.log('Synced with Google Sheets successfully');
+            } catch (err) {
+                console.error('Google Sheets Sync Error:', err);
+            }
+        }
     }
 
     // ── Sticky Add to Cart ──
