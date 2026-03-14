@@ -123,7 +123,12 @@
         </div>
 
         <div class="product-info">
-            <h1 class="product-title">LUMITOP™ Sunset Projection LED Lamp – RGB Remote Control, Foldable & USB Powered</h1>
+            <div class="scarcity-badge">🔥 Limited Stock: Only 7 packs remaining today!</div>
+            <h1 class="product-title">LUMITOP™ Sunset Projection LED Lamp</h1>
+            <div class="sales-progress-container">
+                <div class="sales-progress-bar" style="width: 89%;"></div>
+                <span class="sales-progress-text">89% Sold Out - Join 4,200+ Happy Customers</span>
+            </div> – RGB Remote Control, Foldable & USB Powered</h1>
             <div class="product-rating">
                 <div class="stars">★★★★★</div>
                 <span class="rating-count">(140+ reviews)</span>
@@ -159,7 +164,30 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
                     Add to Cart
                 </button>
-                <button class="btn btn-buy-now" id="buy-now-btn">Buy it Now</button>
+                <form id="checkout-form">
+                <div class="payment-methods">
+                    <div class="payment-method active">
+                        <input type="radio" name="payment" value="cod" id="payment-cod" checked>
+                        <label for="payment-cod">Cash on Delivery (COD) <span class="method-badge">Most Popular</span></label>
+                    </div>
+                    <div class="payment-method">
+                        <input type="radio" name="payment" value="razorpay" id="payment-razorpay">
+                        <label for="payment-razorpay">Online Payment (Cards, UPI, Wallets)</label>
+                    </div>
+                </div>
+
+                <div class="checkout-trust-badger">
+                    <div class="trust-badge-item">
+                        <span>🔒 256-bit Secure Checkout</span>
+                    </div>
+                    <div class="trust-badge-item">
+                        <span>✅ 7-Day Money Back Guarantee</span>
+                    </div>
+                </div>
+
+                <div class="form-error-summary" id="checkout-error-summary">⚠ Please fill all required fields correctly.</div>
+                <button type="submit" class="btn btn-checkout" id="place-order-btn" style="width: 100%; margin-top: 20px;">Place Order Now</button>
+            </form>
             </div>
 
             <div class="trust-badges">
@@ -579,7 +607,8 @@
             <p>Thank you for your purchase. You'll receive a confirmation email shortly.</p>
             <p class="order-id" id="order-id-display"></p>
             <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
-                <button class="btn btn-primary" id="success-track-btn">Track My Order 📦</button>
+                <button class="btn btn-primary" id="success-whatsapp-btn" style="background: #25D366; border: none; font-weight: 700;">Confirm on WhatsApp ✅</button>
+                <button class="btn btn-outline" id="success-track-btn">Track My Order 📦</button>
                 <button class="btn btn-outline" id="success-close-btn" style="border: 1px solid var(--color-border); background: transparent; color: var(--color-text);">Continue Shopping</button>
             </div>
         </div>

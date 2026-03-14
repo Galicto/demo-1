@@ -109,7 +109,8 @@
         ordersLookupBtn: $('#orders-lookup-btn'),
         ordersLookupPhone: $('#orders-lookup-phone'),
         ordersResults: $('#orders-results'),
-        successTrackBtn: $('#success-track-btn')
+        successTrackBtn: $('#success-track-btn'),
+        successWhatsAppBtn: $('#success-whatsapp-btn')
     };
 
     // ── Initialize ──
@@ -259,6 +260,10 @@
         const geoBtn = $('#btn-geo');
         if (geoBtn) geoBtn.addEventListener('click', handleGeolocation);
 
+        // Initializations for Pro features
+        initSocialProof();
+        initScarcityTimer();
+        
         // Auto-play gallery
         setInterval(() => {
             if (!document.hidden) {
@@ -805,8 +810,66 @@ Total: ${els.checkoutTotal.textContent}
         if (els.checkoutForm) els.checkoutForm.reset();
 
         if (els.orderIdDisplay) els.orderIdDisplay.textContent = `Order ID: ${orderId}`;
+        
+        // Set WhatsApp Link
+        const waMsg = `Hi! I just placed an order for ${orderData.items[0].name}. Order ID: ${orderId}. Please confirm my order!`;
+        const waLink = `https://wa.me/91XXXXXXXXXX?text=${encodeURIComponent(waMsg)}`; // Placeholder number
+        if ($('#success-whatsapp-btn')) {
+            $('#success-whatsapp-btn').onclick = () => window.open(waLink, '_blank');
+        }
+
         els.successModal.classList.add('open');
         document.body.classList.add('no-scroll');
+    }
+
+    // ── Pro Features ──
+    function initSocialProof() {
+        const names = ['Arav', 'Priya', 'Vikram', 'Anjali', 'Rahul', 'Sneha', 'Deepak'];
+        const cities = ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Hyderabad', 'Pune'];
+        
+        let proofEl = $('.social-proof');
+        if (!proofEl) {
+            proofEl = document.createElement('div');
+            proofEl.className = 'social-proof';
+            document.body.appendChild(proofEl);
+        }
+
+        function showProof() {
+            const name = names[Math.floor(Math.random() * names.length)];
+            const city = cities[Math.floor(Math.random() * cities.length)];
+            const time = Math.floor(Math.random() * 50) + 5;
+            
+            proofEl.innerHTML = `
+                <img src="images/product-1.jpg" class="social-proof-img">
+                <div class="social-proof-text">
+                    <b>${name}</b> from <b>${city}</b><br>
+                    Just bought a Sunset Lamp ${time}m ago!
+                </div>
+            `;
+            
+            proofEl.classList.add('visible');
+            setTimeout(() => proofEl.classList.remove('visible'), 5000);
+            
+            // Next proof in 15-30s
+            setTimeout(showProof, (Math.random() * 15000) + 15000);
+        }
+
+        setTimeout(showProof, 8000);
+    }
+
+    function initScarcityTimer() {
+        const scarcityText = $('.scarcity-badge');
+        const scarcityBar = $('.sales-progress-bar');
+        if (!scarcityText || !scarcityBar) return;
+
+        let count = 7;
+        setInterval(() => {
+            if (Math.random() > 0.8 && count > 2) {
+                count--;
+                scarcityText.textContent = `🔥 Limited Stock: Only ${count} packs remaining today!`;
+                scarcityBar.style.width = `${89 + (7 - count)}%`;
+            }
+        }, 30000);
     }
 
     async function syncOrderWithBackend(orderData) {
