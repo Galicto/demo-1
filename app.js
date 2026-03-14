@@ -869,13 +869,74 @@ Total: ${els.checkoutTotal.textContent}
         setTimeout(showProof, 8000);
     }
 
-        // Initializations for Pro features
-        initSocialProof();
-        initScarcityTimer();
-        initStickyBuy();
-        initExitIntent();
-        
-        // Auto-play gallery
+    function initScarcityTimer() {
+        const scarcityText = $('.scarcity-badge');
+        const scarcityBar = $('.sales-progress-bar');
+        if (!scarcityText || !scarcityBar) return;
+
+        let count = 7;
+        setInterval(() => {
+            if (Math.random() > 0.8 && count > 2) {
+                count--;
+                scarcityText.textContent = `🔥 Limited Stock: Only ${count} packs remaining today!`;
+                scarcityBar.style.width = `${89 + (7 - count)}%`;
+            }
+        }, 30000);
+    }
+
+    function initStickyBuy() {
+        const trigger = $('#sticky-buy-trigger');
+        const wrapper = $('#sticky-mobile-buy');
+        if (!trigger || !wrapper) return;
+
+        trigger.addEventListener('click', () => {
+            const section = document.getElementById('product-section');
+            if (section) section.scrollIntoView({ behavior: 'smooth' });
+            setTimeout(openCheckoutModal, 800);
+        });
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 800 && window.innerWidth < 768) {
+                wrapper.classList.add('visible');
+            } else {
+                wrapper.classList.remove('visible');
+            }
+        });
+    }
+
+    function initExitIntent() {
+        let shown = false;
+        const modal = $('#exit-modal');
+        if (!modal) return;
+
+        const show = () => {
+            if (shown) return;
+            shown = true;
+            modal.classList.add('open');
+            document.body.classList.add('no-scroll');
+        };
+
+        document.addEventListener('mouseleave', (e) => {
+            if (e.clientY < 0) show();
+        });
+
+        setTimeout(show, 60000);
+
+        if ($('#exit-close')) {
+            $('#exit-close').onclick = () => {
+                modal.classList.remove('open');
+                document.body.classList.remove('no-scroll');
+            };
+        }
+
+        if ($('#exit-claim-btn')) {
+            $('#exit-claim-btn').onclick = () => {
+                modal.classList.remove('open');
+                document.body.classList.remove('no-scroll');
+                openCheckoutModal();
+            };
+        }
+    }
 
     async function syncOrderWithBackend(orderData) {
         // 1. Log to Supabase
