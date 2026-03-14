@@ -1713,7 +1713,8 @@ input, textarea {
 }
 
 .form-row input,
-.form-row textarea {
+.form-row textarea,
+.form-row select {
     width: 100%;
     padding: 12px 14px;
     border: 1.5px solid var(--color-border);
@@ -1724,9 +1725,20 @@ input, textarea {
 }
 
 .form-row input:focus,
-.form-row textarea:focus {
+.form-row textarea:focus,
+.form-row select:focus {
     border-color: var(--color-accent);
     box-shadow: 0 0 0 3px rgba(232,93,4,0.1);
+}
+
+.form-row select {
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
 }
 
 .form-row textarea {
