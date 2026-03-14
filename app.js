@@ -221,6 +221,18 @@
             els.newsletterForm.reset();
         });
 
+        // My Orders
+        els.myOrdersLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            closeMobileNav();
+            openOrdersModal();
+        });
+        els.ordersClose.addEventListener('click', closeOrdersModal);
+        els.ordersLookupBtn.addEventListener('click', handleOrderLookup);
+        els.ordersLookupPhone.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleOrderLookup();
+        });
+
         // Pincode & Geo
         const pincodeInp = $('#checkout-pincode');
         if (pincodeInp) pincodeInp.addEventListener('input', handlePincodeLookup);
@@ -249,6 +261,72 @@
         els.overlay.classList.remove('visible');
         els.hamburger.classList.remove('active');
         document.body.classList.remove('no-scroll');
+    }
+
+    // ── Orders Modal ──
+    function openOrdersModal() {
+        els.ordersModal.classList.add('open');
+        document.body.classList.add('no-scroll');
+    }
+
+    function closeOrdersModal() {
+        els.ordersModal.classList.remove('open');
+        document.body.classList.remove('no-scroll');
+    }
+
+    async function handleOrderLookup() {
+        const phone = els.ordersLookupPhone.value.trim();
+        if (phone.length !== 10) {
+            showToast('⚠ Please enter a valid 10-digit phone number');
+            return;
+        }
+
+        els.ordersResults.innerHTML = '<div class="loading">Searching...</div>';
+        els.ordersLookupBtn.disabled = true;
+
+        try {
+            // Check Supabase
+            if (window.supabaseClient) {
+                const { data, error } = await window.supabaseClient
+                    .from(CONFIG.supabase.table)
+                    .select('*')
+                    .eq('phone', phone)
+                    .order('timestamp', { ascending: false });
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    renderOrderResults(data);
+                } else {
+                    els.ordersResults.innerHTML = '<div class="no-results">No orders found for this number.</div>';
+                }
+            } else {
+                els.ordersResults.innerHTML = '<div class="no-results">System busy. Please try again later.</div>';
+            }
+        } catch (err) {
+            console.error('Order lookup error:', err);
+            els.ordersResults.innerHTML = '<div class="error">Error searching orders. Please try again.</div>';
+        } finally {
+            els.ordersLookupBtn.disabled = false;
+        }
+    }
+
+    function renderOrderResults(orders) {
+        els.ordersResults.innerHTML = orders.map(order => `
+            <div class="order-result-card">
+                <div class="order-result-header">
+                    <span class="order-id-track">#${order.orderId}</span>
+                    <span class="order-status">${order.status || 'Received'}</span>
+                </div>
+                <div class="order-items-list">
+                    ${Array.isArray(order.items) ? order.items.map(i => `${i.name} (${i.color}) ×${i.quantity}`).join('<br>') : 'Items loading...'}
+                </div>
+                <div class="order-result-header" style="margin-top:10px; margin-bottom:0; font-size: 0.8rem; color: #777;">
+                    <span>${new Date(order.timestamp).toLocaleDateString()}</span>
+                    <span>₹${order.total}</span>
+                </div>
+            </div>
+        `).join('');
     }
 
     // ── Cart Drawer ──
