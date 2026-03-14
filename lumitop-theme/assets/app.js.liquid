@@ -306,11 +306,16 @@
             return;
         }
 
-        els.ordersResults.innerHTML = '<div class="loading" style="padding:20px; text-align:center;">Searching...</div>';
+        els.ordersResults.innerHTML = '<div class="loading">Searching...</div>';
         els.ordersLookupBtn.disabled = true;
 
         try {
-            // Check Supabase
+            // 1. Check LocalStorage first
+            const localOrders = JSON.parse(localStorage.getItem('lumitop_orders') || '[]');
+            const filteredLocal = localOrders.filter(o => o.phone === phone);
+
+            // 2. Check Supabase
+            let globalOrders = [];
             if (window.supabaseClient) {
                 const { data, error } = await window.supabaseClient
                     .from(CONFIG.supabase.table)
@@ -318,19 +323,21 @@
                     .eq('phone', phone)
                     .order('timestamp', { ascending: false });
 
-                if (error) throw error;
+                if (!error && data) globalOrders = data;
+            }
 
-                if (data && data.length > 0) {
-                    renderOrderResults(data);
-                } else {
-                    els.ordersResults.innerHTML = '<div class="no-results" style="padding:20px; text-align:center; color:#777;">No orders found for this number.</div>';
-                }
+            const allOrders = [...filteredLocal, ...globalOrders];
+            const uniqueOrders = Array.from(new Map(allOrders.map(o => [o.orderId, o])).values());
+            uniqueOrders.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            if (uniqueOrders.length > 0) {
+                renderOrderResults(uniqueOrders);
             } else {
-                els.ordersResults.innerHTML = '<div class="no-results" style="padding:20px; text-align:center;">System busy. Please try again later.</div>';
+                els.ordersResults.innerHTML = '<div class="no-results">No orders found for this number.</div>';
             }
         } catch (err) {
             console.error('Order lookup error:', err);
-            els.ordersResults.innerHTML = '<div class="error" style="padding:20px; text-align:center; color:var(--color-danger);">Error searching orders.</div>';
+            els.ordersResults.innerHTML = '<div class="error">Error searching orders.</div>';
         } finally {
             els.ordersLookupBtn.disabled = false;
         }

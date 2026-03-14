@@ -309,7 +309,12 @@
         els.ordersLookupBtn.disabled = true;
 
         try {
-            // Check Supabase
+            // 1. Check LocalStorage first (Immediate results)
+            const localOrders = JSON.parse(localStorage.getItem('lumitop_orders') || '[]');
+            const filteredLocal = localOrders.filter(o => o.phone === phone);
+
+            // 2. Check Supabase (Global results)
+            let globalOrders = [];
             if (window.supabaseClient) {
                 const { data, error } = await window.supabaseClient
                     .from(CONFIG.supabase.table)
@@ -317,19 +322,24 @@
                     .eq('phone', phone)
                     .order('timestamp', { ascending: false });
 
-                if (error) throw error;
+                if (!error && data) globalOrders = data;
+            }
 
-                if (data && data.length > 0) {
-                    renderOrderResults(data);
-                } else {
-                    els.ordersResults.innerHTML = '<div class="no-results">No orders found for this number.</div>';
-                }
+            // Merge and de-duplicate by orderId
+            const allOrders = [...filteredLocal, ...globalOrders];
+            const uniqueOrders = Array.from(new Map(allOrders.map(o => [o.orderId, o])).values());
+            
+            // Sort by timestamp
+            uniqueOrders.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            if (uniqueOrders.length > 0) {
+                renderOrderResults(uniqueOrders);
             } else {
-                els.ordersResults.innerHTML = '<div class="no-results">System busy. Please try again later.</div>';
+                els.ordersResults.innerHTML = '<div class="no-results">No orders found for this number.</div>';
             }
         } catch (err) {
             console.error('Order lookup error:', err);
-            els.ordersResults.innerHTML = '<div class="error">Error searching orders. Please try again.</div>';
+            els.ordersResults.innerHTML = '<div class="error">Error searching orders.</div>';
         } finally {
             els.ordersLookupBtn.disabled = false;
         }
